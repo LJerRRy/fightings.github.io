@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小惊喜</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        canvas {
+            display: block;
+            border: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 14px;
+            min-width: 80px;
+        }
+
+        input[type="range"] {
+            width: 200px;
+            height: 5px;
+            border-radius: 5px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ff0000;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #ff0000;
+            cursor: pointer;
+            border: none;
+        }
+
+        .value-display {
+            min-width: 60px;
+            font-size: 14px;
+            color: #ffcccc;
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 30px;
+            border: 2px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+            background: none;
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 3px;
+        }
+
+        input[type="color"]::-moz-color-swatch {
+            border: none;
+            border-radius: 3px;
+        }
+
+        #heartPage {
+            display: none;
+        }
+
+        #box1,
+        #box2 {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px 30px;
+            border-radius: 10px;
+            color: #fff;
+        }
+
+        #heartPageText {
+            /* padding: 20px 30px; */
+            color: #fff;
+        }
+
+        input {
+            padding: 8px 10px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            width: 250px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #ff6fb0;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #box1 {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Step 1: 第一个问题 -->
+    <div id="box1">
+        <div>💗 想看一个小惊喜吗？先回答我：</div>
+
+        <label>你喜欢的人名字首字母是？</label>
+        <input id="q1" placeholder="请输入…" />
+
+        <button onclick="checkQ1()">下一步</button>
+
+        <div id="msg1" style="color:#ff8080; height:18px;"></div>
+    </div>
+
+    <!-- Step 2: 第二个问题 -->
+    <div id="box2">
+        <label>他爱的人的最喜欢的颜色是？</label>
+        <input id="q2" placeholder="请输入…" />
+
+        <button onclick="checkQ2()">提交</button>
+
+        <div id="msg2" style="color:#ff8080; height:18px;"></div>
+    </div>
+
+    <!-- ❤️ 跳动爱心页 -->
+    <div id="heartPage" class="container">
+        <div id="heartPageText" style="margin-top:10px; font-size:18px; text-align:center;color: #fff;">
+            恭喜你都答对了，你最爱的人今天为你准备了一个跳动的爱心，<br>
+            他一直都爱着你，希望你喜欢这个爱心，你们之间的爱情永远永远❤️
+        </div>
+        <canvas id="heartCanvas"></canvas>
+        <div class="controls">
+            <div class="control-group">
+                <label for="frequencySlider">这里可以调整你们的爱心跳动频率:</label>
+                <input type="range" id="frequencySlider" min="0.2" max="5.0" step="0.1" value="2.8">
+                <span class="value-display" id="frequencyValue">1.0x</span>
+            </div>
+            <div class="control-group">
+                <label for="colorPicker">这里可以调整你们的爱心颜色:</label>
+                <input type="color" id="colorPicker" value="#b8ffcd">
+                <span class="value-display" id="colorValue">浅绿色</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        /* ------------------ 第一题 ------------------ */
+        function checkQ1() {
+            const val = document.getElementById("q1").value.trim().toLowerCase();
+            const msg = document.getElementById("msg1");
+
+            if (val !== "wwj") {
+                msg.textContent = "第一个答案不对哦~";
+                return;
+            }
+
+            msg.textContent = "";
+            document.getElementById("box1").style.display = "none";
+            document.getElementById("box2").style.display = "flex";
+        }
+
+        /* ------------------ 第二题 ------------------ */
+        function checkQ2() {
+            const val = document.getElementById("q2").value.trim().toLowerCase();
+            const msg = document.getElementById("msg2");
+
+            const greens = ["绿", "绿色", "草绿", "墨绿", "深绿", "浅绿", "青绿", "薄荷绿", "green"];
+            let pass = greens.some(g => val.includes(g));
+
+            if (!pass) {
+                msg.textContent = "第二个答案不对哦~";
+                return;
+            }
+
+            msg.textContent = "";
+            document.getElementById("box2").style.display = "none";
+            document.getElementById("heartPage").style.display = "flex";
+
+            // 开始动画
+            draw();
+        }
+
+
+
+
+        // 常量定义
+        // const CANVAS_WIDTH = 840;
+        // const CANVAS_HEIGHT = 680;
+        // 让 canvas 自适应手机屏幕大小
+        const CANVAS_WIDTH = window.innerWidth;
+        const CANVAS_HEIGHT = window.innerHeight;
+        // 自动缩放爱心大小（关键）
+        const CANVAS_CENTER_X = CANVAS_WIDTH / 2;
+        const CANVAS_CENTER_Y = CANVAS_HEIGHT / 2;
+        // 默认11调整为自适应屏幕大小
+        const IMAGE_ENLARGE =11;
+
+
+        // 颜色控制变量（默认浅绿色）
+        let heartColor = "#b8ffcd"; // 默认浅绿色
+
+        // 频率控制变量
+        let frequency = 3.0; // 默认频率为1.0
+
+        // 获取canvas和context
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = CANVAS_WIDTH;
+        canvas.height = CANVAS_HEIGHT;
+
+        // 获取控制元素
+        const frequencySlider = document.getElementById('frequencySlider');
+        const frequencyValue = document.getElementById('frequencyValue');
+        const colorPicker = document.getElementById('colorPicker');
+        const colorValue = document.getElementById('colorValue');
+
+        // 数学函数
+        function heartFunction(t, shrinkRatio = IMAGE_ENLARGE) {
+            // 基础函数
+            let x = 17 * Math.pow(Math.sin(t), 3);
+            let y = -(16 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(3 * t));
+
+            // 使用传入的缩放比例
+            x *= shrinkRatio;
+            y *= shrinkRatio;
+            // 移到画布中央
+            x += CANVAS_CENTER_X;
+            y += CANVAS_CENTER_Y;
+
+            return [Math.floor(x), Math.floor(y)];
+        }
+
+        function scatterInside(x, y, beta = 0.15) {
+            const ratioX = -beta * Math.log(Math.random());
+            const ratioY = -beta * Math.log(Math.random());
+
+            const dx = ratioX * (x - CANVAS_CENTER_X);
+            const dy = ratioY * (y - CANVAS_CENTER_Y);
+
+            return [x - dx, y - dy];
+        }
+
+        function shrink(x, y, ratio) {
+            const force = -1 / Math.pow(Math.pow(x - CANVAS_CENTER_X, 2) + Math.pow(y - CANVAS_CENTER_Y, 2), 0.6);
+            const dx = ratio * force * (x - CANVAS_CENTER_X);
+            const dy = ratio * force * (y - CANVAS_CENTER_Y);
+            return [x - dx, y - dy];
+        }
+
+        function curve(p) {
+            // 曲线函数，用于控制跳动的波形
+            // 频率已在时间参数中应用，这里只处理波形
+            return 2 * (2 * Math.sin(4 * p)) / (2 * Math.PI);
+        }
+
+
+        // Heart类
+        class Heart {
+            constructor(generateFrame = 100) {
+                this._points = new Set();
+                this._edgeDiffusionPoints = new Set();
+                this._centerDiffusionPoints = new Set();
+                this.allPoints = {};
+                this.randomHalo = 1000;
+                this.generateFrame = generateFrame;
+                this.build(4000); // 增加边缘点数从2000到5000
+                // 预计算基础帧（频率为1.0）
+                for (let frame = 0; frame < generateFrame; frame++) {
+                    this.calc(frame);
+                }
+            }
+
+            build(number) {
+                // 爱心
+                for (let i = 0; i < number; i++) {
+                    const t = Math.random() * 2 * Math.PI;
+                    const [x, y] = heartFunction(t);
+                    this._points.add(`${x},${y}`);
+                }
+
+                // 爱心内扩散
+                const pointsArray = Array.from(this._points);
+                for (const point of pointsArray) {
+                    const [x, y] = point.split(',').map(Number);
+                    for (let i = 0; i < 3; i++) {
+                        const [newX, newY] = scatterInside(x, y, 0.05);
+                        this._edgeDiffusionPoints.add(`${Math.floor(newX)},${Math.floor(newY)}`);
+                    }
+                }
+
+                // 爱心内再次扩散
+                const pointList = Array.from(this._points);
+                for (let i = 0; i < 10000; i++) {
+                    const randomPoint = pointList[Math.floor(Math.random() * pointList.length)];
+                    const [x, y] = randomPoint.split(',').map(Number);
+                    const [newX, newY] = scatterInside(x, y, 0.27);
+                    this._centerDiffusionPoints.add(`${Math.floor(newX)},${Math.floor(newY)}`);
+                }
+            }
+
+            static calcPosition(x, y, ratio) {
+                const force = 1 / Math.pow(Math.pow(x - CANVAS_CENTER_X, 2) + Math.pow(y - CANVAS_CENTER_Y, 2), 0.420);
+                // random.randint(-1, 1) equivalent: returns -1, 0, or 1
+                const randInt = () => Math.floor(Math.random() * 3) - 1;
+                const dx = ratio * force * (x - CANVAS_CENTER_X) + randInt();
+                const dy = ratio * force * (y - CANVAS_CENTER_Y) + randInt();
+                return [x - dx, y - dy];
+            }
+
+            calc(generateFrame) {
+                // 将帧数映射到 0 到 2*PI 的范围（一个完整周期）
+                const time = (generateFrame / this.generateFrame) * 2 * Math.PI;
+                const ratio = 15 * curve(time);
+                const haloRadius = Math.floor(4 + 6 * (1 + curve(time)));
+                const haloNumber = Math.floor(3000 + 4000 * Math.abs(Math.pow(curve(time), 2)));
+
+                const allPoints = [];
+                const heartHaloPoint = new Set();
+
+                // 光环 - 让扩散的点也形成爱心形状
+                // 根据haloRadius计算扩散倍数，让点沿着爱心形状向外扩散
+                const diffusionScale = IMAGE_ENLARGE + haloRadius * 0.5; // 根据haloRadius调整爱心大小
+                for (let i = 0; i < haloNumber; i++) {
+                    const t = Math.random() * 2 * Math.PI;
+                    // 使用爱心函数生成位置，根据扩散距离调整大小
+                    let [x, y] = heartFunction(t, diffusionScale);
+                    // 添加少量随机偏移，但保持爱心形状
+                    const randomOffset = 3; // 减小随机偏移，保持爱心形状
+                    x += Math.floor(Math.random() * (randomOffset * 2 + 1)) - randomOffset;
+                    y += Math.floor(Math.random() * (randomOffset * 2 + 1)) - randomOffset;
+                    const pointKey = `${Math.floor(x)},${Math.floor(y)}`;
+                    if (!heartHaloPoint.has(pointKey)) {
+                        heartHaloPoint.add(pointKey);
+                        const size = [1, 1, 2][Math.floor(Math.random() * 3)];
+                        allPoints.push([x, y, size]);
+                        allPoints.push([x + 20, y + 20, size]);
+                        allPoints.push([x - 20, y - 20, size]);
+                        allPoints.push([x + 20, y - 20, size]);
+                        allPoints.push([x - 20, y + 20, size]);
+                    }
+                }
+
+                // 轮廓
+                for (const point of this._points) {
+                    const [x, y] = point.split(',').map(Number);
+                    const [newX, newY] = Heart.calcPosition(x, y, ratio);
+                    const size = Math.floor(Math.random() * 3) + 1;
+                    allPoints.push([Math.floor(newX), Math.floor(newY), size]);
+                }
+
+                // 内容
+                for (const point of this._edgeDiffusionPoints) {
+                    const [x, y] = point.split(',').map(Number);
+                    const [newX, newY] = Heart.calcPosition(x, y, ratio);
+                    const size = Math.floor(Math.random() * 2) + 1;
+                    allPoints.push([Math.floor(newX), Math.floor(newY), size]);
+                }
+
+                for (const point of this._centerDiffusionPoints) {
+                    const [x, y] = point.split(',').map(Number);
+                    const [newX, newY] = Heart.calcPosition(x, y, ratio);
+                    const size = Math.floor(Math.random() * 2) + 1;
+                    allPoints.push([Math.floor(newX), Math.floor(newY), size]);
+                }
+
+                this.allPoints[generateFrame] = allPoints;
+            }
+
+            render(renderFrame, freq = 1.0) {
+                // 根据频率调整时间
+                const adjustedFrame = (renderFrame * freq) % this.generateFrame;
+                const frame = Math.floor(adjustedFrame);
+                const points = this.allPoints[frame];
+                if (points) {
+                    ctx.fillStyle = heartColor;
+                    for (const [x, y, size] of points) {
+                        ctx.fillRect(x, y, size, size);
+                    }
+                }
+            }
+
+            // 实时渲染方法（根据频率动态计算）
+            renderWithFrequency(renderFrame, freq = 1.0) {
+                // 将帧数映射到 0 到 2*PI 的范围（一个完整周期）
+                // 频率越高，时间变化越快，跳动越快
+                const time = ((renderFrame * freq) / this.generateFrame) * 2 * Math.PI;
+                // 使用标准curve函数（频率已在时间计算中应用）
+                const ratio = 15 * curve(time);
+                const haloRadius = Math.floor(4 + 6 * (1 + curve(time)));
+                const haloNumber = Math.floor(3000 + 4000 * Math.abs(Math.pow(curve(time), 2)));
+
+                ctx.fillStyle = heartColor;
+
+                // 光环 - 让扩散的点也形成爱心形状
+                const heartHaloPoint = new Set();
+                // 根据haloRadius计算扩散倍数，让点沿着爱心形状向外扩散
+                const diffusionScale = IMAGE_ENLARGE + haloRadius * 0.5; // 根据haloRadius调整爱心大小
+                for (let i = 0; i < Math.min(haloNumber, 500); i++) { // 限制数量以提高性能
+                    const t = Math.random() * 2 * Math.PI;
+                    // 使用爱心函数生成位置，根据扩散距离调整大小
+                    let [x, y] = heartFunction(t, diffusionScale);
+                    // 添加少量随机偏移，但保持爱心形状
+                    const randomOffset = 3; // 减小随机偏移，保持爱心形状
+                    x += Math.floor(Math.random() * (randomOffset * 2 + 1)) - randomOffset;
+                    y += Math.floor(Math.random() * (randomOffset * 2 + 1)) - randomOffset;
+                    const pointKey = `${Math.floor(x)},${Math.floor(y)}`;
+                    if (!heartHaloPoint.has(pointKey) && heartHaloPoint.size < 100) {
+                        heartHaloPoint.add(pointKey);
+                        const size = [1, 1, 2][Math.floor(Math.random() * 3)];
+                        ctx.fillRect(x, y, size, size);
+                        ctx.fillRect(x + 20, y + 20, size, size);
+                        ctx.fillRect(x - 20, y - 20, size, size);
+                        ctx.fillRect(x + 20, y - 20, size, size);
+                        ctx.fillRect(x - 20, y + 20, size, size);
+                    }
+                }
+
+                // 轮廓
+                for (const point of this._points) {
+                    const [x, y] = point.split(',').map(Number);
+                    const [newX, newY] = Heart.calcPosition(x, y, ratio);
+                    const size = Math.floor(Math.random() * 3) + 1;
+                    ctx.fillRect(Math.floor(newX), Math.floor(newY), size, size);
+                }
+
+                // 内容
+                const edgePoints = Array.from(this._edgeDiffusionPoints);
+                for (let i = 0; i < Math.min(edgePoints.length, 2000); i++) {
+                    const point = edgePoints[i];
+                    const [x, y] = point.split(',').map(Number);
+                    const [newX, newY] = Heart.calcPosition(x, y, ratio);
+                    const size = Math.floor(Math.random() * 2) + 1;
+                    ctx.fillRect(Math.floor(newX), Math.floor(newY), size, size);
+                }
+
+                const centerPoints = Array.from(this._centerDiffusionPoints);
+                for (let i = 0; i < Math.min(centerPoints.length, 3000); i++) {
+                    const point = centerPoints[i];
+                    const [x, y] = point.split(',').map(Number);
+                    const [newX, newY] = Heart.calcPosition(x, y, ratio);
+                    const size = Math.floor(Math.random() * 2) + 1;
+                    ctx.fillRect(Math.floor(newX), Math.floor(newY), size, size);
+                }
+            }
+        }
+
+        // 动画函数
+        let animationFrame = 0;
+        const heart = new Heart();
+        const BASE_SPEED = 0.1; // 基础速度参数
+
+        function draw() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // 使用实时渲染方法，根据频率动态计算
+            // frequency 参数直接传入 renderWithFrequency，控制跳动频率
+            // frequency=1.0时，标准速度；frequency=2.0时，跳动速度加倍
+            heart.renderWithFrequency(animationFrame, frequency);
+
+            // 动画帧持续增长，频率影响渲染时的计算，不影响帧数增长速度
+            animationFrame += BASE_SPEED;
+
+            // 防止帧数过大导致精度问题
+            if (animationFrame > 100000) {
+                animationFrame = animationFrame % (heart.generateFrame * 100);
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        // 颜色名称映射
+        const colorNames = {
+            '#FFB6C1': '粉色',
+            '#FFC0CB': '浅粉色',
+            '#FF69B4': '热粉色',
+            '#FF1493': '深粉色',
+            '#FF0000': '红色',
+            '#DC143C': '深红色',
+            '#FF6347': '番茄红',
+            '#FF4500': '橙红色',
+            '#FF69B4': '粉红色',
+            '#C71585': '中紫红色',
+            '#FF1493': '深粉红色',
+            '#B8FFCD': '浅绿色'
+        };
+
+        function getColorName(hex) {
+            // 转换为大写并查找
+            const upperHex = hex.toUpperCase();
+            return colorNames[upperHex] || hex;
+        }
+
+        // 频率滑块事件监听器
+        frequencySlider.addEventListener('input', function (e) {
+            const newFrequency = parseFloat(e.target.value);
+            frequency = newFrequency;
+            frequencyValue.textContent = newFrequency.toFixed(1) + 'x';
+        });
+
+        // 颜色选择器事件监听器
+        colorPicker.addEventListener('input', function (e) {
+            heartColor = e.target.value;
+            const colorName = getColorName(heartColor);
+            colorValue.textContent = colorName;
+        });
+
+        // 初始化显示
+        frequencyValue.textContent = frequencySlider.value + 'x';
+        colorValue.textContent = getColorName(colorPicker.value);
+
+
+    </script>
+</body>
+
+</html>
